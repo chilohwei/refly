@@ -552,22 +552,27 @@ export const SkillResponseNode = memo(
     }, []);
 
     return (
-      <div className={classNames({ nowheel: isOperating })} data-cy="skill-response-node">
+      <div
+        className={classNames({ nowheel: isOperating && isHovered })}
+        data-cy="skill-response-node"
+      >
         <div
           ref={targetRef}
           className={classNames({
             'relative nodrag nopan select-text': isOperating,
           })}
           style={isPreview ? { width: 288, height: 200 } : containerStyle}
-          onMouseEnter={handleMouseEnter}
-          onMouseLeave={handleMouseLeave}
           onClick={onNodeClick}
         >
           {!isPreview && !hideActions && !isDragging && !readonly && (
             <ActionButtons type="skillResponse" nodeId={id} isNodeHovered={selected && isHovered} />
           )}
 
-          <div className={`h-full flex flex-col ${getNodeCommonStyles({ selected, isHovered })}`}>
+          <div
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
+            className={`h-full flex flex-col ${getNodeCommonStyles({ selected, isHovered })}`}
+          >
             {!isPreview && !hideHandles && (
               <>
                 <CustomHandle

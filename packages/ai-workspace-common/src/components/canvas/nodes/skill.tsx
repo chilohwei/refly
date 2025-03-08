@@ -414,20 +414,22 @@ export const SkillNode = memo(
     }, [edges, id, contextItems, getNodes, patchNodeData, readonly]);
 
     return (
-      <div className={classNames({ nowheel: isOperating })}>
+      <div className={classNames({ nowheel: isOperating && isHovered })}>
         <div
           ref={targetRef}
           className={classNames({
             'relative group nodrag nopan select-text': isOperating,
           })}
-          onMouseEnter={handleMouseEnter}
-          onMouseLeave={handleMouseLeave}
           style={containerStyle}
         >
           {!isDragging && !readonly && (
             <ActionButtons type="skill" nodeId={id} isNodeHovered={selected && isHovered} />
           )}
-          <div className={`w-full h-full  ${getNodeCommonStyles({ selected, isHovered })}`}>
+          <div
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
+            className={`w-full h-full  ${getNodeCommonStyles({ selected, isHovered })}`}
+          >
             {
               <>
                 <CustomHandle

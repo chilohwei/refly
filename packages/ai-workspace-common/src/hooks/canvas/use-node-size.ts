@@ -52,7 +52,7 @@ export const useNodeSize = ({
         ? Number.parseInt(node.style.width as string)
         : (node?.measured?.width ?? defaultWidth),
       height:
-        node?.style?.height === 'auto'
+        sizeMode === 'compact' || node?.style?.height === 'auto'
           ? 'auto'
           : getMaxHeight(Number(node?.measured?.height ?? defaultHeight)),
       maxHeight: containerMaxHeight,
@@ -83,7 +83,7 @@ export const useNodeSize = ({
           ? Number.parseInt(node.style.width as string)
           : (node?.measured?.width ?? defaultWidth),
         height:
-          node.style.height === 'auto'
+          sizeMode === 'compact' || node?.style?.height === 'auto'
             ? 'auto'
             : getMaxHeight(
                 Number.parseInt(node.style.height as string) ||

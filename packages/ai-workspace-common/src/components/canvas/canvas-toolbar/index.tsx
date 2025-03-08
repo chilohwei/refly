@@ -300,49 +300,69 @@ export const CanvasToolbar = memo<ToolbarProps>(({ onToolSelect, nodeLength }) =
   );
 
   const createSkillNode = useCallback(() => {
-    addNode({
-      type: 'skill',
-      data: { title: 'Skill', entityId: genSkillID() },
-    });
+    addNode(
+      {
+        type: 'skill',
+        data: { title: 'Skill', entityId: genSkillID() },
+      },
+      [],
+      true,
+      true,
+    );
   }, [addNode]);
 
   const createMemo = useCallback(() => {
     const memoId = genMemoID();
-    addNode({
-      type: 'memo',
-      data: { title: t('canvas.nodeTypes.memo'), entityId: memoId },
-    });
+    addNode(
+      {
+        type: 'memo',
+        data: { title: t('canvas.nodeTypes.memo'), entityId: memoId },
+      },
+      [],
+      true,
+      true,
+    );
   }, [addNode, t]);
 
   const createCodeArtifactNode = useCallback(() => {
     // For code artifacts, we'll use a resource ID since there's no specific prefix for code artifacts
     const codeArtifactId = genCodeArtifactID();
-    addNode({
-      type: 'codeArtifact',
-      data: {
-        title: t('canvas.nodeTypes.codeArtifact', 'Code Artifact'),
-        entityId: codeArtifactId,
-        contentPreview: '',
-        metadata: {
-          status: 'finish',
-          language: 'typescript',
-          activeTab: 'code',
+    addNode(
+      {
+        type: 'codeArtifact',
+        data: {
+          title: t('canvas.nodeTypes.codeArtifact', 'Code Artifact'),
+          entityId: codeArtifactId,
+          contentPreview: '',
+          metadata: {
+            status: 'finish',
+            language: 'typescript',
+            activeTab: 'code',
+          },
         },
       },
-    });
+      [],
+      true,
+      true,
+    );
   }, [addNode, t]);
 
   const createWebsiteNode = useCallback(() => {
-    addNode({
-      type: 'website',
-      data: {
-        title: t('canvas.nodes.website.defaultTitle', 'Website'),
-        entityId: genSkillID(),
-        metadata: {
-          viewMode: 'form',
+    addNode(
+      {
+        type: 'website',
+        data: {
+          title: t('canvas.nodes.website.defaultTitle', 'Website'),
+          entityId: genSkillID(),
+          metadata: {
+            viewMode: 'form',
+          },
         },
       },
-    });
+      [],
+      true,
+      true,
+    );
   }, [addNode, t]);
 
   const handleToolSelect = useCallback(

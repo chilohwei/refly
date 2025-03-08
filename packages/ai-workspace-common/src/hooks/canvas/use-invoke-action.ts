@@ -31,6 +31,7 @@ import { getArtifactContentAndAttributes } from '@refly-packages/ai-workspace-co
 import { useFindCodeArtifact } from '@refly-packages/ai-workspace-common/hooks/canvas/use-find-code-artifact';
 import { useFindImages } from '@refly-packages/ai-workspace-common/hooks/canvas/use-find-images';
 import { ARTIFACT_TAG_CLOSED_REGEX } from '@refly-packages/ai-workspace-common/modules/artifacts/const';
+import { useFindWebsite } from './use-find-website';
 
 export const useInvokeAction = () => {
   const { addNode } = useAddNode();
@@ -148,6 +149,7 @@ export const useInvokeAction = () => {
                 status: 'generating',
                 language: language || 'typescript', // Use extracted language or default
                 type: type || '', // Use extracted type if available
+                title: title || artifact?.title || '',
                 // If artifact is closed, set activeTab to preview
                 ...(isArtifactClosed && { activeTab: 'preview' }),
               },
@@ -176,6 +178,7 @@ export const useInvokeAction = () => {
               // Update language and type if available from extracted attributes
               ...(language && { language }),
               ...(type && { type }),
+              title: title || artifact?.title || '',
               // If artifact is closed, set activeTab to preview
               ...(isArtifactClosed && { activeTab: 'preview' }),
             },
@@ -422,6 +425,7 @@ export const useInvokeAction = () => {
   const onStart = () => {};
   const findThreadHistory = useFindThreadHistory();
   const findMemo = useFindMemo();
+  const findWebsite = useFindWebsite();
   const findCodeArtifact = useFindCodeArtifact();
   const findImages = useFindImages();
 
@@ -467,6 +471,15 @@ export const useInvokeAction = () => {
       (item) => {
         if (item.type === 'image') {
           return findImages({ resultId: item.entityId });
+        }
+        return [];
+      },
+      (item) => {
+        if (item.type === 'website') {
+          return findWebsite({ resultId: item.entityId }).map((node) => ({
+            url: node.data?.metadata?.url ?? '',
+            title: node.data?.title ?? 'Website',
+          }));
         }
         return [];
       },

@@ -34,10 +34,10 @@ export const cleanHtml = (htmlContent: string): string => {
 const cleanMarkdown = (markdownContent: string): string => {
   let cleanedMarkdown = markdownContent;
 
-  // Remove multiple consecutive empty lines
+  // Remove multiple consecutive empty lines (but keep double newlines)
   cleanedMarkdown = cleanedMarkdown.replace(/\n{3,}/g, '\n\n');
 
-  // Remove trailing spaces at the end of lines
+  // Remove trailing spaces at the end of lines (but keep newlines)
   cleanedMarkdown = cleanedMarkdown.replace(/[ \t]+$/gm, '');
 
   // Clean up code blocks (ensure proper spacing)
@@ -65,8 +65,14 @@ const cleanMarkdown = (markdownContent: string): string => {
   // Remove empty lines that only contain spaces or special characters
   cleanedMarkdown = cleanedMarkdown.replace(/^\s*[\[\]\(\)\*\-\_\#\~\`]+\s*$/gm, '');
 
-  // Clean up multiple spaces between words
-  cleanedMarkdown = cleanedMarkdown.replace(/\s{2,}/g, ' ');
+  // clean up multiple spaces between words
+  cleanedMarkdown = cleanedMarkdown.replace(/[^\S\n]{2,}/g, ' ');
+
+  // ensure paragraphs have appropriate newlines
+  cleanedMarkdown = cleanedMarkdown.replace(/(\S)\n\n(\S)/g, '$1\n\n$2');
+
+  // ensure list items have appropriate newlines
+  cleanedMarkdown = cleanedMarkdown.replace(/(\n[*\-+] .+)\n([^*\-+\n])/g, '$1\n\n$2');
 
   return cleanedMarkdown.trim();
 };

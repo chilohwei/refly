@@ -309,12 +309,10 @@ export const MemoNode = ({
   );
 
   return (
-    <div className={classNames({ nowheel: isFocused })}>
+    <div className={classNames({ nowheel: isFocused && isHovered })}>
       <div
         ref={targetRef}
         className="relative"
-        onMouseEnter={!isPreview ? handleMouseEnter : undefined}
-        onMouseLeave={!isPreview ? handleMouseLeave : undefined}
         onClick={onNodeClick}
         style={{
           width: `${size.width}px`,
@@ -332,6 +330,8 @@ export const MemoNode = ({
 
         <div
           style={{ backgroundColor: bgColor }}
+          onMouseEnter={!isPreview ? handleMouseEnter : undefined}
+          onMouseLeave={!isPreview ? handleMouseLeave : undefined}
           className={`
             h-full
             ${getNodeCommonStyles({ selected: !isPreview && selected, isHovered })}

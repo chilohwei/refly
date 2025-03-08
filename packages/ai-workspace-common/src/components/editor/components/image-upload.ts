@@ -19,7 +19,7 @@ export const createUploadFn = (param: { entityId: string; entityType: string }) 
         return false;
       }
 
-      return data.data?.url;
+      return data?.data?.url;
     },
     validateFn: (file) => {
       if (!file.type.includes('image/')) {

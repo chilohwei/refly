@@ -68,8 +68,8 @@ export const ImportFromFile = () => {
         file,
       },
     });
-    if (data.success) {
-      return { ...data.data, uid };
+    if (data?.success) {
+      return { ...(data.data || {}), uid };
     }
     return { url: '', storageKey: '', uid };
   };

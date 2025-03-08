@@ -300,10 +300,6 @@ export class MiscService implements OnModuleInit {
           deletedAt: null,
         },
       });
-
-      if (!existingFile) {
-        throw new ParamsError(`File with key ${param.storageKey} not found`);
-      }
     }
 
     const objectKey = randomUUID();

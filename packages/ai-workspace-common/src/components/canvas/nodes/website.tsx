@@ -36,12 +36,26 @@ const DEFAULT_HEIGHT = 400;
  */
 const NodeContent = memo(
   ({ data, readonly }: { data: CanvasNodeData<WebsiteNodeMeta>; readonly: boolean }) => {
-    const { url = '', viewMode = 'form', sizeMode = 'adaptive' } = data?.metadata ?? {};
+    const { url = '', viewMode = 'form' } = data?.metadata ?? {};
     const [isEditing, setIsEditing] = useState(viewMode === 'form' || !url);
     const { t } = useTranslation();
     const setNodeDataByEntity = useSetNodeDataByEntity();
     const formRef = useRef<any>(null);
-    const iframeRef = useRef<HTMLIFrameElement>(null);
+
+    // Update editing state when metadata changes
+    useEffect(() => {
+      const shouldBeEditing = data?.metadata?.viewMode === 'form' || !data?.metadata?.url;
+      if (isEditing !== shouldBeEditing) {
+        setIsEditing(shouldBeEditing);
+      }
+    }, [data?.metadata?.url, data?.metadata?.viewMode, isEditing]);
+
+    // Initialize form with current URL when entering edit mode
+    useEffect(() => {
+      if (isEditing && formRef.current && url) {
+        formRef.current.setFieldsValue({ url });
+      }
+    }, [isEditing, url]);
 
     // Handle form submission to save URL
     const handleSubmit = useCallback(
@@ -74,13 +88,6 @@ const NodeContent = memo(
       },
       [data.entityId, data.metadata, setNodeDataByEntity, t],
     );
-
-    // Initialize form with current URL when entering edit mode
-    useEffect(() => {
-      if (isEditing && formRef.current && url) {
-        formRef.current.setFieldsValue({ url });
-      }
-    }, [isEditing, url]);
 
     // Toggle between form and preview modes
     const toggleMode = useCallback(
@@ -201,158 +208,24 @@ const NodeContent = memo(
               icon={<FiCode />}
               onClick={toggleMode}
               className="flex items-center"
+              disabled={readonly}
             >
               {t('canvas.nodes.website.edit', 'Edit')}
             </Button>
           </div>
         </div>
-        <div
-          className={classNames('flex-1 overflow-hidden', {
-            'max-h-[40px]': sizeMode === 'compact',
-          })}
-        >
-          <iframe
-            ref={iframeRef}
-            src={url}
-            title={data.title}
-            className="w-full h-full border-0"
-            sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-presentation"
-            allow="fullscreen"
-            referrerPolicy="no-referrer"
-            loading="lazy"
-            onLoad={(e) => {
-              try {
-                // Try to access iframe content to mute any audio/video elements
-                const iframe = e.target as HTMLIFrameElement;
-                const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
-
-                if (iframeDoc) {
-                  // Function to handle media elements
-                  const handleMediaElement = (element: HTMLMediaElement) => {
-                    element.muted = true;
-                    element.autoplay = false;
-                    element.setAttribute('autoplay', 'false');
-                    element.setAttribute('preload', 'none');
-
-                    // Remove any existing event listeners
-                    const elementClone = element.cloneNode(true) as HTMLMediaElement;
-                    element.parentNode?.replaceChild(elementClone, element);
-
-                    // Prevent play attempts
-                    elementClone.addEventListener(
-                      'play',
-                      (e) => {
-                        if (elementClone.muted === false) {
-                          elementClone.muted = true;
-                          e.preventDefault();
-                          elementClone.pause();
-                        }
-                      },
-                      true,
-                    );
-                  };
-
-                  // Handle existing media elements
-                  const mediaElements = iframeDoc.querySelectorAll('video, audio, iframe');
-                  for (const element of Array.from(mediaElements)) {
-                    if (element instanceof HTMLMediaElement) {
-                      handleMediaElement(element);
-                    } else if (element instanceof HTMLIFrameElement) {
-                      // Handle nested iframes
-                      element.setAttribute('allow', 'fullscreen');
-                      element.setAttribute('autoplay', 'false');
-                    }
-                  }
-
-                  // Create observer to handle dynamically added elements
-                  const observer = new MutationObserver((mutations) => {
-                    for (const mutation of mutations) {
-                      for (const node of Array.from(mutation.addedNodes)) {
-                        if (node instanceof HTMLElement) {
-                          // Handle newly added media elements
-                          const newMediaElements = node.querySelectorAll('video, audio, iframe');
-                          for (const element of Array.from(newMediaElements)) {
-                            if (element instanceof HTMLMediaElement) {
-                              handleMediaElement(element);
-                            } else if (element instanceof HTMLIFrameElement) {
-                              element.setAttribute('allow', 'fullscreen');
-                              element.setAttribute('autoplay', 'false');
-                            }
-                          }
-
-                          // Also check if the node itself is a media element
-                          if (node instanceof HTMLMediaElement) {
-                            handleMediaElement(node);
-                          } else if (node instanceof HTMLIFrameElement) {
-                            node.setAttribute('allow', 'fullscreen');
-                            node.setAttribute('autoplay', 'false');
-                          }
-                        }
-                      }
-                    }
-                  });
-
-                  // Start observing
-                  observer.observe(iframeDoc.body, {
-                    childList: true,
-                    subtree: true,
-                  });
-
-                  // Add strict CSP
-                  const meta = iframeDoc.createElement('meta');
-                  meta.setAttribute('http-equiv', 'Content-Security-Policy');
-                  meta.setAttribute(
-                    'content',
-                    "media-src 'none'; autoplay 'none'; camera 'none'; microphone 'none'",
-                  );
-                  iframeDoc.head?.insertBefore(meta, iframeDoc.head.firstChild);
-
-                  // Add CSS to prevent autoplay and ensure muted state
-                  const style = iframeDoc.createElement('style');
-                  style.textContent = `
-                    video, audio, iframe {
-                      autoplay: false !important;
-                      muted: true !important;
-                    }
-                    video[autoplay], audio[autoplay], iframe[autoplay] {
-                      autoplay: false !important;
-                    }
-                    video:not([muted]), audio:not([muted]) {
-                      muted: true !important;
-                    }
-                    /* Bilibili specific */
-                    .bilibili-player-video {
-                      pointer-events: none !important;
-                    }
-                    .bilibili-player-video-control {
-                      pointer-events: auto !important;
-                    }
-                  `;
-                  iframeDoc.head?.appendChild(style);
-
-                  // Clean up observer when iframe is unloaded
-                  return () => observer.disconnect();
-                }
-              } catch {
-                // Ignore cross-origin errors
-                console.debug('Cannot access iframe content due to same-origin policy');
-              }
-            }}
-          />
-        </div>
       </div>
     );
   },
   (prevProps, nextProps) => {
-    // Compare content
-    const contentEqual = prevProps.data?.contentPreview === nextProps.data?.contentPreview;
+    const prevUrl = prevProps.data?.metadata?.url;
+    const nextUrl = nextProps.data?.metadata?.url;
+    const prevViewMode = prevProps.data?.metadata?.viewMode;
+    const nextViewMode = nextProps.data?.metadata?.viewMode;
+    const prevReadonly = prevProps.readonly;
+    const nextReadonly = nextProps.readonly;
 
-    // Compare metadata properties
-    const urlEqual = prevProps.data?.metadata?.url === nextProps.data?.metadata?.url;
-    const viewModeEqual = prevProps.data?.metadata?.viewMode === nextProps.data?.metadata?.viewMode;
-    const sizeModeEqual = prevProps.data?.metadata?.sizeMode === nextProps.data?.metadata?.sizeMode;
-
-    return contentEqual && urlEqual && viewModeEqual && sizeModeEqual;
+    return prevUrl === nextUrl && prevViewMode === nextViewMode && prevReadonly === nextReadonly;
   },
 );
 

@@ -17,6 +17,7 @@ export const useExportCanvasAsImage = () => {
     try {
       const response = await fetch(imgUrl, {
         mode: 'cors',
+        cache: 'no-cache',
         ...(imgUrl.startsWith(staticPrivateEndpoint) ? { credentials: 'include' } : {}),
       });
       const blob = await response.blob();

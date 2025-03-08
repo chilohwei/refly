@@ -1,12 +1,7 @@
 import { memo, useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { Position, useReactFlow } from '@xyflow/react';
 import { useTranslation } from 'react-i18next';
-import {
-  CanvasNode,
-  CanvasNodeData,
-  CodeArtifactNodeMeta,
-  CodeArtifactNodeProps,
-} from './shared/types';
+import { CanvasNode, CodeArtifactNodeProps } from './shared/types';
 import { CustomHandle } from './shared/custom-handle';
 import { getNodeCommonStyles } from './index';
 import { ActionButtons } from './shared/action-buttons';
@@ -27,216 +22,14 @@ import { useNodeSize } from '@refly-packages/ai-workspace-common/hooks/canvas/us
 import { NodeHeader } from './shared/node-header';
 import { useCanvasContext } from '@refly-packages/ai-workspace-common/context/canvas';
 import { useEditorPerformance } from '@refly-packages/ai-workspace-common/context/editor-performance';
-import CodeViewerLayout from '@refly-packages/ai-workspace-common/modules/artifacts/code-runner/code-viewer-layout';
-import CodeViewer from '@refly-packages/ai-workspace-common/modules/artifacts/code-runner/code-viewer';
 import { NodeResizer as NodeResizerComponent } from './shared/node-resizer';
 import { IconCodeArtifact } from '@refly-packages/ai-workspace-common/components/common/icon';
-import { useSetNodeDataByEntity } from '@refly-packages/ai-workspace-common/hooks/canvas/use-set-node-data-by-entity';
 import { useInsertToDocument } from '@refly-packages/ai-workspace-common/hooks/canvas/use-insert-to-document';
 import { useAddNode } from '@refly-packages/ai-workspace-common/hooks/canvas/use-add-node';
 import { genSkillID } from '@refly-packages/utils/id';
-import { CodeArtifactType } from '@refly-packages/ai-workspace-common/modules/artifacts/code-runner/types';
 import { IContextItem } from '@refly-packages/ai-workspace-common/stores/context-panel';
 import { useChatStore } from '@refly-packages/ai-workspace-common/stores/chat';
-import { ConfigScope, Skill } from '@refly/openapi-schema';
-
-interface NodeContentProps {
-  data: CanvasNodeData<CodeArtifactNodeMeta>;
-  isOperating?: boolean;
-}
-
-const NodeContent = memo(
-  ({ data, isOperating }: NodeContentProps) => {
-    const { language = 'html', activeTab = 'code', type = 'text/html' } = data?.metadata ?? {};
-    const [isShowingCodeViewer, setIsShowingCodeViewer] = useState(true);
-    const [currentTab, setCurrentTab] = useState<'code' | 'preview'>(
-      activeTab as 'code' | 'preview',
-    );
-    const [currentType, setCurrentType] = useState<CodeArtifactType>(type as CodeArtifactType);
-    const { t } = useTranslation();
-
-    // Use isOperating for UI state (disabled controls when operating)
-    const isReadOnly = !!isOperating;
-
-    // Sync local state with metadata changes
-    useEffect(() => {
-      // Only update if activeTab changes and is different from current state
-      const metadataActiveTab = data?.metadata?.activeTab as 'code' | 'preview';
-      if (metadataActiveTab && metadataActiveTab !== currentTab) {
-        setCurrentTab(metadataActiveTab);
-      }
-
-      // Update type if it changes in metadata
-      const metadataType = data?.metadata?.type as CodeArtifactType;
-      if (metadataType && metadataType !== currentType) {
-        setCurrentType(metadataType);
-      }
-    }, [data?.metadata?.activeTab, currentTab, data?.metadata?.type, currentType]);
-
-    const setNodeDataByEntity = useSetNodeDataByEntity();
-    const { addNode } = useAddNode();
-
-    // Update node data when tab changes
-    const handleTabChange = useCallback(
-      (tab: 'code' | 'preview') => {
-        setCurrentTab(tab);
-
-        if (data?.entityId) {
-          setNodeDataByEntity(
-            {
-              type: 'codeArtifact',
-              entityId: data.entityId,
-            },
-            {
-              metadata: {
-                ...data.metadata,
-                activeTab: tab,
-              },
-            },
-          );
-        }
-      },
-      [data?.entityId, data?.metadata, setNodeDataByEntity],
-    );
-
-    // Handle type changes
-    const handleTypeChange = useCallback(
-      (newType: CodeArtifactType) => {
-        // Update local state first
-        setCurrentType(newType);
-
-        // Ensure newType is a valid CodeArtifactType
-        if (data?.entityId && newType) {
-          setNodeDataByEntity(
-            {
-              type: 'codeArtifact',
-              entityId: data.entityId,
-            },
-            {
-              metadata: {
-                ...data?.metadata,
-                type: newType,
-              },
-            },
-          );
-        }
-      },
-      [data?.entityId, data?.metadata, setNodeDataByEntity, setCurrentType],
-    );
-
-    // Always show the content, even when generating
-    return (
-      <CodeViewerLayout isShowing={isShowingCodeViewer}>
-        {isShowingCodeViewer && (
-          <CodeViewer
-            code={data?.contentPreview || ''}
-            language={language}
-            title={data?.title || t('codeArtifact.defaultTitle', 'Code Artifact')}
-            isGenerating={data?.metadata?.status === 'generating'}
-            activeTab={currentTab}
-            onTabChange={handleTabChange}
-            onTypeChange={handleTypeChange}
-            onClose={() => {
-              setIsShowingCodeViewer(false);
-            }}
-            onRequestFix={(error) => {
-              if (!data.entityId) return;
-
-              // Define a proper code fix skill similar to editDoc
-              const codeFixSkill: Skill = {
-                name: 'codeArtifacts',
-                icon: {
-                  type: 'emoji',
-                  value: '🔧',
-                },
-                description: t('codeArtifact.fix.title'),
-                configSchema: {
-                  items: [],
-                },
-              };
-
-              // Get the current model
-              const { selectedModel } = useChatStore.getState();
-
-              addNode(
-                {
-                  type: 'skill',
-                  data: {
-                    title: t('codeArtifact.fix.title'),
-                    entityId: genSkillID(),
-                    metadata: {
-                      contextItems: [
-                        {
-                          type: 'codeArtifact',
-                          title: data?.contentPreview
-                            ? `${data.title} - ${data.contentPreview?.slice(0, 10)}`
-                            : data.title,
-                          entityId: data.entityId,
-                          metadata: data.metadata,
-                        },
-                      ] as IContextItem[],
-                      query: t('codeArtifact.fix.query', {
-                        errorMessage: error,
-                      }),
-                      selectedSkill: codeFixSkill,
-                      modelInfo: selectedModel,
-                      tplConfig: {
-                        codeErrorConfig: {
-                          value: {
-                            errorMessage: error,
-                            language: data?.metadata?.language || 'typescript',
-                            codeEntityId: data.entityId,
-                          },
-                          configScope: 'runtime' as unknown as ConfigScope,
-                          displayValue: t('codeArtifact.fix.errorConfig'),
-                          label: t('codeArtifact.fix.errorConfig'),
-                        },
-                      },
-                    },
-                  },
-                },
-                [{ type: 'codeArtifact', entityId: data.entityId }],
-                false,
-                true,
-              );
-            }}
-            onChange={(updatedCode) => {
-              if (data.entityId) {
-                setNodeDataByEntity(
-                  {
-                    type: 'codeArtifact',
-                    entityId: data.entityId,
-                  },
-                  {
-                    contentPreview: updatedCode,
-                  },
-                );
-              }
-            }}
-            readOnly={isReadOnly}
-            type={currentType}
-          />
-        )}
-      </CodeViewerLayout>
-    );
-  },
-  (prevProps, nextProps) => {
-    // Compare content
-    const contentEqual = prevProps.data?.contentPreview === nextProps.data?.contentPreview;
-
-    // Compare metadata properties
-    const languageEqual = prevProps.data?.metadata?.language === nextProps.data?.metadata?.language;
-    const statusEqual = prevProps.data?.metadata?.status === nextProps.data?.metadata?.status;
-    const activeTabEqual =
-      prevProps.data?.metadata?.activeTab === nextProps.data?.metadata?.activeTab;
-    const sizeModeEqual = prevProps.data?.metadata?.sizeMode === nextProps.data?.metadata?.sizeMode;
-    const typeEqual = prevProps.data?.metadata?.type === nextProps.data?.metadata?.type;
-
-    return (
-      contentEqual && languageEqual && statusEqual && activeTabEqual && sizeModeEqual && typeEqual
-    );
-  },
-);
+import { Skill } from '@refly/openapi-schema';
 
 export const CodeArtifactNode = memo(
   ({
@@ -408,12 +201,10 @@ export const CodeArtifactNode = memo(
     }, [id, handleAddToContext, handleDelete, handleInsertToDoc, handleAskAI]);
 
     return (
-      <div className={classNames({ nowheel: isOperating })}>
+      <div className={classNames({ nowheel: isOperating && isHovered })}>
         <div
           ref={targetRef}
           style={isPreview ? { width: 288, height: 200 } : containerStyle}
-          onMouseEnter={!isPreview ? handleMouseEnter : undefined}
-          onMouseLeave={!isPreview ? handleMouseLeave : undefined}
           onClick={onNodeClick}
           className={classNames({
             'nodrag nopan select-text': isOperating,
@@ -424,21 +215,23 @@ export const CodeArtifactNode = memo(
           )}
 
           <div
+            onMouseEnter={!isPreview ? handleMouseEnter : undefined}
+            onMouseLeave={!isPreview ? handleMouseLeave : undefined}
             className={`
-          h-full
-          flex flex-col
-          ${getNodeCommonStyles({ selected: !isPreview && selected, isHovered })}
-        `}
+              h-full
+              flex flex-col
+              ${getNodeCommonStyles({ selected: !isPreview && selected, isHovered })}
+            `}
           >
             <div className="flex flex-col h-full relative p-3 box-border">
               <NodeHeader
-                title={t('canvas.nodeTypes.codeArtifact')}
+                title={data?.title || t('canvas.nodeTypes.codeArtifact')}
                 Icon={IconCodeArtifact}
                 iconBgColor="#3E63DD"
               />
 
               <div className="relative flex-grow min-h-0">
-                <div
+                {/* <div
                   style={{
                     height: '100%',
                     overflowY: 'auto',
@@ -446,7 +239,7 @@ export const CodeArtifactNode = memo(
                   }}
                 >
                   <NodeContent data={data} isOperating={isOperating} />
-                </div>
+                </div> */}
               </div>
               {/* Timestamp container */}
               <div className="flex justify-end items-center text-[10px] text-gray-400 mt-1 px-1">

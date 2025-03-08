@@ -94,6 +94,7 @@ export const convertContextItemsToInvokeParams = (
   getImages?: (
     item: IContextItem,
   ) => { storageKey: string; title: string; entityId: string; metadata: any }[],
+  getWebsite?: (item: IContextItem) => { url: string; title: string }[],
 ): { context: SkillContext; resultHistory: ActionResult[]; images: string[] } => {
   const purgedItems = purgeContextItems(items);
   const context = {
@@ -166,13 +167,27 @@ export const convertContextItemsToInvokeParams = (
       })),
     urls: purgedItems
       ?.filter((item) => item?.type === 'website')
-      .map((item) => ({
-        url: item.metadata?.url || '',
-        metadata: {
-          title: item.title,
-          ...item.metadata,
-        },
-      })),
+      .flatMap((item) => {
+        if (getWebsite) {
+          return getWebsite(item).map((site) => ({
+            url: site.url || '',
+            metadata: {
+              title: site.title,
+              ...item.metadata,
+            },
+          }));
+        }
+
+        return [
+          {
+            url: item.metadata?.url || '',
+            metadata: {
+              title: item.title,
+              ...item.metadata,
+            },
+          },
+        ];
+      }),
   };
   const resultHistory = purgedItems
     ?.filter((item) => item.type === 'skillResponse')

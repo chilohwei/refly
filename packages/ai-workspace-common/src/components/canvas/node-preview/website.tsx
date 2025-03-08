@@ -11,13 +11,21 @@ interface WebsiteNodePreviewProps {
   node: CanvasNode<WebsiteNodeMeta>;
 }
 
-const WebsiteNodePreviewComponent = ({ node }: WebsiteNodePreviewProps) => {
+const WebsiteNodePreviewComponent = memo(({ node }: WebsiteNodePreviewProps) => {
   const { t } = useTranslation();
   const { url = '', viewMode = 'form' } = node.data?.metadata ?? {};
   const [isEditing, setIsEditing] = useState(viewMode === 'form' || !url);
   const formRef = useRef<any>(null);
   const setNodeDataByEntity = useSetNodeDataByEntity();
   const { readonly } = useCanvasContext();
+
+  // Sync editing state with metadata changes
+  useEffect(() => {
+    const shouldBeEditing = node.data?.metadata?.viewMode === 'form' || !node.data?.metadata?.url;
+    if (isEditing !== shouldBeEditing) {
+      setIsEditing(shouldBeEditing);
+    }
+  }, [node.data?.metadata?.url, node.data?.metadata?.viewMode, isEditing]);
 
   // Initialize form with current URL when entering edit mode
   useEffect(() => {
@@ -161,8 +169,9 @@ const WebsiteNodePreviewComponent = ({ node }: WebsiteNodePreviewProps) => {
       </div>
       <div className="flex-1 overflow-hidden">
         <iframe
+          key={url}
           src={url}
-          title={node.data.title}
+          title={node.data.title || url}
           className="w-full h-full border-0"
           sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-presentation"
           allow="fullscreen"
@@ -290,19 +299,16 @@ const WebsiteNodePreviewComponent = ({ node }: WebsiteNodePreviewProps) => {
       </div>
     </div>
   );
-};
+});
 
 export const WebsiteNodePreview = memo(WebsiteNodePreviewComponent, (prevProps, nextProps) => {
-  // Compare content
-  const contentEqual =
-    prevProps.node?.data?.contentPreview === nextProps.node?.data?.contentPreview;
+  // Optimize re-renders by only updating when necessary node data changes
+  const prevUrl = prevProps.node.data?.metadata?.url;
+  const nextUrl = nextProps.node.data?.metadata?.url;
+  const prevViewMode = prevProps.node.data?.metadata?.viewMode;
+  const nextViewMode = nextProps.node.data?.metadata?.viewMode;
 
-  // Compare metadata properties
-  const urlEqual = prevProps.node?.data?.metadata?.url === nextProps.node?.data?.metadata?.url;
-  const viewModeEqual =
-    prevProps.node?.data?.metadata?.viewMode === nextProps.node?.data?.metadata?.viewMode;
-
-  return contentEqual && urlEqual && viewModeEqual;
+  return prevUrl === nextUrl && prevViewMode === nextViewMode;
 });
 
 WebsiteNodePreview.displayName = 'WebsiteNodePreview';

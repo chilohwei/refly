@@ -15,12 +15,13 @@ export const useUploadImage = () => {
         entityType: 'canvas',
       },
     });
-    return response.data;
+    return response?.data;
   };
 
   const handleUploadImage = async (imageFile: File, canvasId: string, event?: React.MouseEvent) => {
-    const { data, success } = await uploadImage(imageFile, canvasId);
-    if (success) {
+    const result = await uploadImage(imageFile, canvasId);
+    const { data, success } = result ?? {};
+    if (success && data) {
       const flowPosition = event
         ? reactFlowInstance.screenToFlowPosition({
             x: event.clientX,

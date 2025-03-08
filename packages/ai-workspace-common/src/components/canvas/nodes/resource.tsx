@@ -43,7 +43,11 @@ import { NODE_COLORS } from '@refly-packages/ai-workspace-common/components/canv
 import cn from 'classnames';
 
 const NodeContent = memo(
-  ({ data, isOperating }: { data: CanvasNodeData<ResourceNodeMeta>; isOperating: boolean }) => {
+  ({
+    data,
+    isOperating,
+    isPreview,
+  }: { data: CanvasNodeData<ResourceNodeMeta>; isOperating: boolean; isPreview: boolean }) => {
     const { t } = useTranslation();
     const { indexStatus, sizeMode } = data?.metadata ?? {};
 
@@ -70,7 +74,7 @@ const NodeContent = memo(
     return (
       <ContentPreview
         content={data.contentPreview || t('canvas.nodePreview.resource.noContentPreview')}
-        sizeMode={sizeMode}
+        sizeMode={isPreview ? 'adaptive' : sizeMode}
         isOperating={isOperating}
       />
     );
@@ -246,7 +250,7 @@ export const ResourceNode = memo(
 
     useEffect(() => {
       if (remoteResult) {
-        const { contentPreview, indexStatus, indexError } = remoteResult;
+        const { contentPreview, indexStatus, indexError, title } = remoteResult;
 
         setNodeDataByEntity(
           {
@@ -254,6 +258,7 @@ export const ResourceNode = memo(
             type: 'resource',
           },
           {
+            title,
             contentPreview,
             metadata: {
               indexStatus,
@@ -298,12 +303,10 @@ export const ResourceNode = memo(
     }, [id, handleAddToContext, handleDelete, handleDeleteFile, handleAskAI, handleCreateDocument]);
 
     return (
-      <div className={classNames({ nowheel: isOperating })}>
+      <div className={classNames({ nowheel: isOperating && isHovered })}>
         <div
           ref={targetRef}
           style={isPreview ? { width: 288, height: 200 } : containerStyle}
-          onMouseEnter={!isPreview ? handleMouseEnter : undefined}
-          onMouseLeave={!isPreview ? handleMouseLeave : undefined}
           onClick={onNodeClick}
           className={classNames({
             'nodrag nopan select-text': isOperating,
@@ -314,6 +317,8 @@ export const ResourceNode = memo(
           )}
 
           <div
+            onMouseEnter={!isPreview ? handleMouseEnter : undefined}
+            onMouseLeave={!isPreview ? handleMouseLeave : undefined}
             className={`
             h-full
             flex flex-col
@@ -327,17 +332,8 @@ export const ResourceNode = memo(
                 iconBgColor={NODE_COLORS.resource}
               />
 
-              <div className="relative flex-grow min-h-0">
-                <div
-                  style={{
-                    height: '100%',
-                    overflowY: 'auto',
-                    maxHeight: sizeMode === 'compact' ? '40px' : '',
-                    paddingBottom: '40px',
-                  }}
-                >
-                  <NodeContent data={data} isOperating={isOperating} />
-                </div>
+              <div className="relative flex-grow min-h-0 overflow-y-auto pr-2 -mr-2">
+                <NodeContent data={data} isOperating={isOperating} isPreview={isPreview} />
               </div>
               {/* Timestamp container */}
               <div className="flex justify-end items-center text-[10px] text-gray-400 mt-1 px-1">

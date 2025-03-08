@@ -55,10 +55,10 @@ export const useCanvasSync = () => {
     };
 
     const syncNodesToYDoc = (nodes: CanvasNode<any>[]) => {
-      if (!nodes?.length) return;
+      const nodesToSync = nodes || [];
 
       // Purge context items from nodes
-      const purgedNodes = nodes.map((node) => ({
+      const purgedNodes = nodesToSync.map((node) => ({
         ...node,
         data: {
           ...node.data,
@@ -99,12 +99,12 @@ export const useCanvasSync = () => {
 
   const throttledSyncNodesToYDoc = useThrottledCallback(syncFunctions.syncNodesToYDoc, 500, {
     leading: true,
-    trailing: false,
+    trailing: true,
   });
 
   const throttledSyncEdgesToYDoc = useThrottledCallback(syncFunctions.syncEdgesToYDoc, 500, {
     leading: true,
-    trailing: false,
+    trailing: true,
   });
 
   return {

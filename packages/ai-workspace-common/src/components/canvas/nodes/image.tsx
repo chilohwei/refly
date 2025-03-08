@@ -201,12 +201,10 @@ export const ImageNode = memo(
     }
 
     return (
-      <div className={isOperating ? 'nowheel' : ''}>
+      <div className={isOperating && isHovered ? 'nowheel' : ''}>
         <div
           ref={targetRef}
           style={isPreview ? { width: 288, height: 200 } : containerStyle}
-          onMouseEnter={!isPreview ? handleMouseEnter : undefined}
-          onMouseLeave={!isPreview ? handleMouseLeave : undefined}
           onClick={onNodeClick}
           className={classNames({
             'nodrag nopan select-text': isOperating,
@@ -217,6 +215,8 @@ export const ImageNode = memo(
           )}
 
           <div
+            onMouseEnter={!isPreview ? handleMouseEnter : undefined}
+            onMouseLeave={!isPreview ? handleMouseLeave : undefined}
             className={`
                 w-full
                 h-full

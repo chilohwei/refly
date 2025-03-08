@@ -331,7 +331,7 @@ const translations = {
     pricing: {
       title: '计划与定价',
       subtitle: '踏上您的 AI 内容创作之旅',
-      description: '注册并体验每天 20 次标准模型调用的无限期试用套餐。无需绑定信用卡。',
+      description: '注册并体验每天 30 次标准模型调用的无限期试用套餐。无需绑定信用卡。',
       limitedOffer: '现在订阅年度计划永久五折！3月16日上午8点（北京时间）调整价格并取消无限套餐',
     },
     footer: {

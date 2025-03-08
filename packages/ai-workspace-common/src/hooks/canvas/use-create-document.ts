@@ -165,7 +165,7 @@ export const useCreateDocument = () => {
           position: position,
         };
 
-        addNode(newNode);
+        addNode(newNode, [], true, true);
       }
     },
     [

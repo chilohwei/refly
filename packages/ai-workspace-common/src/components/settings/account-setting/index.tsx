@@ -46,7 +46,7 @@ export const AccountSetting = () => {
       body: { file, visibility: 'public' },
     });
     setLoadingAvatar(false);
-    if (data?.data.url) {
+    if (data?.data?.url) {
       setAvatarError(false);
       setAvatarUrl(data.data.url);
     }

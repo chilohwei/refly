@@ -205,53 +205,73 @@ export const MenuPopper: FC<MenuPopperProps> = ({ open, position, setOpen }) => 
   const menuScreenPosition = getMenuScreenPosition();
 
   const createSkillNode = (position: { x: number; y: number }) => {
-    addNode({
-      type: 'skill',
-      data: { title: 'Skill', entityId: genSkillID() },
-      position: position,
-    });
+    addNode(
+      {
+        type: 'skill',
+        data: { title: 'Skill', entityId: genSkillID() },
+        position: position,
+      },
+      [],
+      true,
+      true,
+    );
   };
 
   const createMemo = (position: { x: number; y: number }) => {
     const memoId = genMemoID();
-    addNode({
-      type: 'memo',
-      data: { title: t('canvas.nodeTypes.memo'), entityId: memoId },
-      position: position,
-    });
+    addNode(
+      {
+        type: 'memo',
+        data: { title: t('canvas.nodeTypes.memo'), entityId: memoId },
+        position: position,
+      },
+      [],
+      true,
+      true,
+    );
   };
 
   const createCodeArtifactNode = (position: { x: number; y: number }) => {
     // For code artifacts, we'll use a resource ID since there's no specific prefix for code artifacts
     const codeArtifactId = genResourceID();
-    addNode({
-      type: 'codeArtifact',
-      data: {
-        title: t('canvas.nodeTypes.codeArtifact', 'Code Artifact'),
-        entityId: codeArtifactId,
-        contentPreview: '',
-        metadata: {
-          status: 'finish',
-          language: 'typescript',
-          activeTab: 'code',
+    addNode(
+      {
+        type: 'codeArtifact',
+        data: {
+          title: t('canvas.nodeTypes.codeArtifact', 'Code Artifact'),
+          entityId: codeArtifactId,
+          contentPreview: '',
+          metadata: {
+            status: 'finish',
+            language: 'typescript',
+            activeTab: 'code',
+          },
         },
+        position: position,
       },
-      position: position,
-    });
+      [],
+      true,
+      true,
+    );
   };
 
   const createWebsiteNode = (position: { x: number; y: number }) => {
-    addNode({
-      type: 'website',
-      data: {
-        title: t('canvas.nodes.website.defaultTitle', 'Website'),
-        entityId: genSkillID(),
-        metadata: {
-          viewMode: 'form',
+    addNode(
+      {
+        type: 'website',
+        data: {
+          title: t('canvas.nodes.website.defaultTitle', 'Website'),
+          entityId: genSkillID(),
+          metadata: {
+            viewMode: 'form',
+          },
         },
+        position,
       },
-      position,
-    });
+      [],
+      true,
+      true,
+    );
     setOpen(false);
   };
 

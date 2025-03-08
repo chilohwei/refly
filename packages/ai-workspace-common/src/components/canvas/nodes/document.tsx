@@ -197,14 +197,12 @@ export const DocumentNode = memo(
     ]);
 
     return (
-      <div className={classNames({ nowheel: isOperating })}>
+      <div className={classNames({ nowheel: isOperating && isHovered })}>
         <div
           ref={targetRef}
           className={classNames({
             'relative nodrag nopan select-text': isOperating,
           })}
-          onMouseEnter={!isPreview ? handleMouseEnter : undefined}
-          onMouseLeave={!isPreview ? handleMouseLeave : undefined}
           onClick={onNodeClick}
           style={isPreview ? { width: 288, height: 200 } : containerStyle}
         >
@@ -213,6 +211,8 @@ export const DocumentNode = memo(
           )}
 
           <div
+            onMouseEnter={!isPreview ? handleMouseEnter : undefined}
+            onMouseLeave={!isPreview ? handleMouseLeave : undefined}
             className={`
             h-full
             ${getNodeCommonStyles({ selected: !isPreview && selected, isHovered })}
@@ -245,12 +245,10 @@ export const DocumentNode = memo(
                 iconBgColor="#00968F"
               />
 
-              <div
-                className={`flex-grow overflow-y-auto pr-2 -mr-2 ${isOperating ? 'overflow-auto' : 'overflow-hidden'}`}
-              >
+              <div className="flex-grow overflow-y-auto pr-2 -mr-2">
                 <ContentPreview
                   content={data.contentPreview || t('canvas.nodePreview.document.noContentPreview')}
-                  sizeMode={sizeMode}
+                  sizeMode={isPreview ? 'adaptive' : sizeMode}
                   isOperating={isOperating}
                   className="min-h-8"
                 />

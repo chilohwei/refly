@@ -93,7 +93,7 @@ export const useAddNode = () => {
       node: { type: CanvasNodeType; data: CanvasNodeData<any>; position?: XYPosition },
       connectTo?: CanvasNodeFilter[],
       shouldPreview = true,
-      needSetCenter = true,
+      needSetCenter = false,
     ) => {
       const { data, nodeSizeMode } = useCanvasStore.getState();
       const nodes = data[canvasId]?.nodes ?? [];
