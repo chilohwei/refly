@@ -1,4 +1,4 @@
-import '../register-aliases';
+import './register-aliases';
 
 import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
@@ -10,13 +10,13 @@ import * as Sentry from '@sentry/node';
 import { nodeProfilingIntegration } from '@sentry/profiling-node';
 import { Logger } from 'nestjs-pino';
 
-import { AppModule } from '../modules/app.module';
+import { AppModule } from './modules/app.module';
 import { ConfigService } from '@nestjs/config';
 
 import tracer from './tracer';
-import { setTraceID } from '../utils/middleware/set-trace-id';
-import { GlobalExceptionFilter } from '../utils/filters/global-exception.filter';
-import { CustomWsAdapter } from '../utils/adapters/ws-adapter';
+import { setTraceID } from './utils/middleware/set-trace-id';
+import { GlobalExceptionFilter } from './utils/filters/global-exception.filter';
+import { CustomWsAdapter } from './utils/adapters/ws-adapter';
 
 Sentry.init({
   dsn: process.env.SENTRY_DSN,

@@ -2,12 +2,12 @@
   "compilerOptions": {
     "module": "commonjs",
     "moduleResolution": "node",
-    "declaration": true,
+    "declaration": false,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "allowSyntheticDefaultImports": true,
     "target": "es2021",
-    "sourceMap": true,
+    "sourceMap": false,
     "inlineSourceMap": false,
     "rootDir": "./src",
     "outDir": "./dist",
@@ -20,12 +20,9 @@
     "strictBindCallApply": false,
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false,
-    "inlineSources": true,
     "paths": {
       "@/*": ["./src/*"]
     },
-    "sourceRoot": "/",
-    "composite": true,
     "types": ["jest", "node", "express", "multer", "electron"],
     "resolveJsonModule": true
   },

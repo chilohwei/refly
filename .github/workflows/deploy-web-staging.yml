@@ -8,6 +8,7 @@ on:
       - 'apps/api/**'
       - 'apps/extension/**'
       - 'packages/skill-template/**'
+      - 'docs/**'
   workflow_dispatch:
 
 jobs:

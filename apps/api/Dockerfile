@@ -6,10 +6,8 @@ WORKDIR /app
 RUN npm install -g pnpm
 
 # Set environment variables to skip gyp-related installations
-# ENV npm_config_build_from_source=true
 ENV npm_config_gyp_ignore=true
 ENV CYPRESS_INSTALL_BINARY=0
-ENV SWC_BUILD=true
 
 # Copy all necessary files in one layer
 COPY pnpm-workspace.yaml pnpm-lock.yaml package.json turbo.json ./
@@ -23,8 +21,8 @@ RUN pnpm install --ignore-scripts
 # Copy remaining source code
 COPY . .
 
-# Build packages in correct order using SWC
-RUN pnpm build:api:fast
+# Build packages in correct order
+RUN pnpm build:api
 
 # # Clean up development dependencies
 # RUN rm -rf node_modules
@@ -84,4 +82,4 @@ COPY --from=builder /app/packages/ ./packages/
 ENV NODE_ENV=production
 
 EXPOSE 3000
-CMD ["node", "apps/api/dist/server/main.js"]
+CMD ["node", "apps/api/dist/main.js"]

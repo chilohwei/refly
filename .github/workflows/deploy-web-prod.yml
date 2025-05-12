@@ -1,6 +1,14 @@
 name: Deploy Web To Prod
 
 on:
+  push:
+    branches:
+      - stable
+    paths-ignore:
+      - 'apps/api/**'
+      - 'apps/extension/**'
+      - 'packages/skill-template/**'
+      - 'docs/**'
   workflow_dispatch:
 
 jobs:
