@@ -27,7 +27,10 @@ export const CommunityMcpCard: React.FC<CommunityMcpCardProps> = memo(
 
     // Initialize the create MCP server mutation
     const createMcpServer = useCreateMcpServer([], {
-      onSuccess: () => {
+      onSuccess: (response) => {
+        if (!response?.data?.success) {
+          throw response.data.errMsg;
+        }
         message.success(t('settings.mcpServer.community.installSuccess', { name: config.name }));
         setInstalling(false);
         onInstall?.(config);
@@ -41,7 +44,10 @@ export const CommunityMcpCard: React.FC<CommunityMcpCardProps> = memo(
 
     // Initialize the validate MCP server mutation
     const validateMcpServer = useValidateMcpServer([], {
-      onSuccess: () => {
+      onSuccess: (response) => {
+        if (!response?.data?.success) {
+          throw response.data.errMsg;
+        }
         message.success(t('settings.mcpServer.community.validateSuccess'));
         setValidating(false);
       },
